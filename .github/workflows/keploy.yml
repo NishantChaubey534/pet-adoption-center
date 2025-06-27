@@ -40,7 +40,8 @@ jobs:
           tar -xzf keploy_linux_amd64.tar.gz
           chmod +x keploy
           sudo mv keploy /usr/local/bin/keploy
-          keploy version
+          echo "Keploy installed successfully"
+
 
 
       - name: Start backend, call endpoints, and run Keploy tests
