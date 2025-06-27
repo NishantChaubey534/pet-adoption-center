@@ -36,10 +36,12 @@ jobs:
 
       - name: Download and install Keploy CLI manually
         run: |
-          curl -LO https://github.com/keploy/keploy/releases/download/v0.1.6/keploy_linux_amd64.tar.gz
+          curl -LO https://github.com/keploy/keploy/releases/latest/download/keploy_linux_amd64.tar.gz
           tar -xzf keploy_linux_amd64.tar.gz
+          chmod +x keploy
           sudo mv keploy /usr/local/bin/keploy
-          keploy version || echo "Keploy installed manually ✅"
+          keploy version
+
 
       - name: Start backend, call endpoints, and run Keploy tests
         run: |
