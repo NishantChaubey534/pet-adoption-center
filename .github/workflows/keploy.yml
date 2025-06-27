@@ -44,13 +44,12 @@ jobs:
 
 
 
-      - name: Start backend, call endpoints, and run Keploy tests
+      - name: Start backend, call endpoints, record, and run Keploy tests
         run: |
           cd backend
           nohup npm start &
           sleep 10
 
-          # Create a new pet
           curl -X POST http://localhost:5000/api/pets \
             -H "Content-Type: application/json" \
             -d '{
@@ -74,4 +73,8 @@ jobs:
             curl -X DELETE http://localhost:5000/api/pets/$PET_ID
           fi
 
+          # Step 1: Record API traffic
+          keploy record --command "npm start" --delay 5
+
+          # Step 2: Replay and test the same API traffic
           keploy test --command "npm start"
