@@ -34,21 +34,20 @@ jobs:
       - name: Install jq (for extracting pet ID)
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Install Keploy CLI and confirm path
+      - name: Download and install Keploy CLI manually
         run: |
-          curl -s https://keploy.io/install.sh | bash
-          echo "✅ Installed Keploy"
-          find /home/runner -type f -name keploy || echo "❌ Not found"
-          export PATH=$PATH:/home/runner/go/bin
-          ls /home/runner/go/bin/
+          curl -LO https://github.com/keploy/keploy/releases/download/v0.1.6/keploy_linux_amd64.tar.gz
+          tar -xzf keploy_linux_amd64.tar.gz
+          sudo mv keploy /usr/local/bin/keploy
+          keploy version || echo "Keploy installed manually ✅"
 
       - name: Start backend, call endpoints, and run Keploy tests
         run: |
-          export PATH=$PATH:/home/runner/go/bin
           cd backend
           nohup npm start &
           sleep 10
 
+          # Create a new pet
           curl -X POST http://localhost:5000/api/pets \
             -H "Content-Type: application/json" \
             -d '{
@@ -72,4 +71,4 @@ jobs:
             curl -X DELETE http://localhost:5000/api/pets/$PET_ID
           fi
 
-          /home/runner/go/bin/keploy test --command "npm start"
+          keploy test --command "npm start"
