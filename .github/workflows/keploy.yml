@@ -74,7 +74,7 @@ jobs:
           fi
 
           # Step 1: Record API traffic
-          keploy record --command "npm start" --delay 5
+          keploy record --command "npm start" --record-timer 10s
 
           # Step 2: Replay and test the same API traffic
           keploy test --command "npm start"
