@@ -34,18 +34,21 @@ jobs:
       - name: Install jq (for extracting pet ID)
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Install Keploy CLI
+      - name: Install Keploy CLI and confirm path
         run: |
           curl -s https://keploy.io/install.sh | bash
-          echo "$HOME/go/bin" >> $GITHUB_PATH
+          echo "✅ Installed Keploy"
+          find /home/runner -type f -name keploy || echo "❌ Not found"
+          export PATH=$PATH:/home/runner/go/bin
+          ls /home/runner/go/bin/
 
       - name: Start backend, call endpoints, and run Keploy tests
         run: |
+          export PATH=$PATH:/home/runner/go/bin
           cd backend
           nohup npm start &
           sleep 10
 
-          # POST: Create a new pet
           curl -X POST http://localhost:5000/api/pets \
             -H "Content-Type: application/json" \
             -d '{
@@ -56,14 +59,11 @@ jobs:
               "image": "https://example.com/dog.jpg"
             }' -o response.json
 
-          # GET: Fetch all pets
           curl http://localhost:5000/api/pets
 
-          # Extract pet ID from POST response (it's a single object)
           PET_ID=$(jq -r '._id' response.json || echo "")
           echo "Extracted Pet ID: $PET_ID"
 
-          # PUT & DELETE only if ID found
           if [ "$PET_ID" != "" ]; then
             curl -X PUT http://localhost:5000/api/pets/$PET_ID \
               -H "Content-Type: application/json" \
@@ -72,4 +72,4 @@ jobs:
             curl -X DELETE http://localhost:5000/api/pets/$PET_ID
           fi
 
-          keploy test --command "npm start"
+          /home/runner/go/bin/keploy test --command "npm start"
