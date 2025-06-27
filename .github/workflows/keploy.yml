@@ -19,15 +19,57 @@ jobs:
 
       - name: Install backend dependencies
         run: npm install
-        working-directory: ./backend
+        working-directory: backend
 
-      - name: Start backend and run Keploy record
+      - name: Set environment variables
         run: |
-          curl -s https://keploy.io/install.sh | bash
+          echo "PORT=5000" >> $GITHUB_ENV
+          echo "MONGO_URI=mongodb://localhost:27017/keploy-pets" >> $GITHUB_ENV
+
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.8.0
+        with:
+          mongodb-version: '6.0'
+
+      - name: Install jq (to parse pet ID)
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Install Keploy CLI
+        run: curl -s https://keploy.io/install.sh | bash
+
+      - name: Start backend, trigger endpoints, and run Keploy tests
+        run: |
           cd backend
           nohup npm start &
-          sleep 5
-          curl http://localhost:3000/pets
-          curl -X POST http://localhost:3000/pets -H "Content-Type: application/json" -d '{"name":"Tommy","type":"Dog"}'
-          curl http://localhost:3000/pets
+          sleep 10
+
+          # 1. Create a new pet and save response
+          curl -X POST http://localhost:5000/api/pets \
+            -H "Content-Type: application/json" \
+            -d '{
+              "name": "Tommy",
+              "age": 2,
+              "breed": "Labrador",
+              "description": "Friendly and playful",
+              "image": "https://example.com/dog.jpg"
+            }' -o response.json
+
+          # 2. Get all pets
+          curl http://localhost:5000/api/pets
+
+          # 3. Extract pet ID and run PUT/DELETE if valid
+          PET_ID=$(jq -r '.[-1]._id' response.json || echo "")
+          echo "Extracted Pet ID: $PET_ID"
+
+          if [ "$PET_ID" != "" ]; then
+            # 4. Update pet
+            curl -X PUT http://localhost:5000/api/pets/$PET_ID \
+              -H "Content-Type: application/json" \
+              -d '{"description":"Updated via Keploy CI"}'
+
+            # 5. Delete pet
+            curl -X DELETE http://localhost:5000/api/pets/$PET_ID
+          fi
+
+          # Run Keploy tests
           keploy test --command "npm start"
