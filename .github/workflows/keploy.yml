@@ -1,0 +1,33 @@
+name: Keploy API Testing
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  keploy-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install backend dependencies
+        run: npm install
+        working-directory: ./backend
+
+      - name: Start backend and run Keploy record
+        run: |
+          curl -s https://keploy.io/install.sh | bash
+          cd backend
+          nohup npm start &
+          sleep 5
+          curl http://localhost:3000/pets
+          curl -X POST http://localhost:3000/pets -H "Content-Type: application/json" -d '{"name":"Tommy","type":"Dog"}'
+          curl http://localhost:3000/pets
+          keploy test --command "npm start"
