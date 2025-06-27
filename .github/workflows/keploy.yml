@@ -37,7 +37,7 @@ jobs:
       - name: Install Keploy CLI
         run: |
           curl -s https://keploy.io/install.sh | bash
-          which keploy || echo "Keploy not found!"
+          echo "$HOME/go/bin" >> $GITHUB_PATH
 
       - name: Start backend, call endpoints, and run Keploy tests
         run: |
@@ -45,6 +45,7 @@ jobs:
           nohup npm start &
           sleep 10
 
+          # POST: Create a new pet
           curl -X POST http://localhost:5000/api/pets \
             -H "Content-Type: application/json" \
             -d '{
@@ -55,11 +56,14 @@ jobs:
               "image": "https://example.com/dog.jpg"
             }' -o response.json
 
+          # GET: Fetch all pets
           curl http://localhost:5000/api/pets
 
-          PET_ID=$(jq -r '.[0]._id' response.json || echo "")
+          # Extract pet ID from POST response (it's a single object)
+          PET_ID=$(jq -r '._id' response.json || echo "")
           echo "Extracted Pet ID: $PET_ID"
 
+          # PUT & DELETE only if ID found
           if [ "$PET_ID" != "" ]; then
             curl -X PUT http://localhost:5000/api/pets/$PET_ID \
               -H "Content-Type: application/json" \
@@ -68,4 +72,4 @@ jobs:
             curl -X DELETE http://localhost:5000/api/pets/$PET_ID
           fi
 
-          /usr/local/bin/keploy test --command "npm start"
+          keploy test --command "npm start"
