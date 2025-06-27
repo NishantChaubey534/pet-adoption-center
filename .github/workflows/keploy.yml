@@ -34,18 +34,18 @@ jobs:
       - name: Install jq (for extracting pet ID)
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Install Keploy CLI and set path
+      - name: Install Keploy CLI and prepare path
         run: |
           curl -s https://keploy.io/install.sh | bash
           echo "$HOME/.keploy/bin" >> $GITHUB_PATH
+          ls -la $HOME/.keploy/bin  # Debug check
 
       - name: Start backend, call endpoints, and run Keploy tests
         run: |
           cd backend
-          nohup npm start & 
+          nohup npm start &
           sleep 10
 
-          # POST: Create a new pet
           curl -X POST http://localhost:5000/api/pets \
             -H "Content-Type: application/json" \
             -d '{
@@ -56,22 +56,17 @@ jobs:
               "image": "https://example.com/dog.jpg"
             }' -o response.json
 
-          # GET: Fetch all pets
           curl http://localhost:5000/api/pets
 
-          # Extract the created _id for PUT and DELETE
-          PET_ID=$(jq -r '._id' response.json || echo "")
+          PET_ID=$(jq -r '.[0]._id' response.json || echo "")
           echo "Extracted Pet ID: $PET_ID"
 
-          # PUT: Update the pet
           if [ "$PET_ID" != "" ]; then
             curl -X PUT http://localhost:5000/api/pets/$PET_ID \
               -H "Content-Type: application/json" \
               -d '{"description":"Updated via Keploy CI"}'
 
-            # DELETE: Remove the pet
             curl -X DELETE http://localhost:5000/api/pets/$PET_ID
           fi
 
-          # Run Keploy test
-          ~/.keploy/bin/keploy test --command "npm start"
+          $HOME/.keploy/bin/keploy test --command "npm start"
