@@ -10,6 +10,11 @@ app.use(cors({
   origin: 'http://localhost:3000',
   credentials: true,
 }));
+
+const { swaggerUi, specs } = require("./swagger");
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
+
+
 app.use(express.json());
 app.use('/api/pets', petRoutes);
 
