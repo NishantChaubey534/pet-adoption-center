@@ -1,7 +1,34 @@
-- name: Install Keploy CLI
-  run: |
-    curl --silent -L https://keploy.io/ent/install.sh | bash
+name: Keploy Test Suite
 
-- name: Run Keploy Test Suite
-  run: |
-   export KEPLOY_API_KEY=mADN7lUmyXLuyX4Huw== && keploy test-suite --app=6ed82155-be53-4588-8776-a8f8f9d52017 --base-path http://localhost:5000/api --cloud
+on: [push, pull_request]
+
+jobs:
+  run-keploy-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm install
+        working-directory: ./backend
+
+      - name: Start Server in Background
+        run: |
+          nohup npm start > server.log 2>&1 &
+        working-directory: ./backend
+
+      - name: Install Keploy CLI
+        run: |
+          curl --silent -L https://keploy.io/ent/install.sh | bash
+
+      - name: Run Keploy Test Suite
+        env:
+          KEPLOY_API_KEY: mADN7lUmyXLuyX4Huw==
+        run: |
+          keploy test-suite --app=6ed82155-be53-4588-8776-a8f8f9d52017 --base-path http://localhost:5000/api --cloud
