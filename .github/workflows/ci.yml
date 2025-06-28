@@ -1,39 +1,42 @@
-name: Run Keploy Tests
+name: Keploy API Testing
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
-  test:
+  keploy-test:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
-    - name: Install Dependencies
-      run: npm install
-      working-directory: ./backend
+      - name: Install dependencies
+        run: npm install
+        working-directory: backend
 
-    - name: Start Server
-      run: |
-        npm start &
-        sleep 15  # wait for server to fully start
-      working-directory: ./backend
+      - name: Create .env file with Mongo URI
+        run: |
+          echo "MONGO_URI=${{ secrets.MONGO_URI }}" > .env
+        working-directory: backend
 
-    - name: Install Keploy CLI
-      run: curl --silent -L https://keploy.io/ent/install.sh | bash
+      - name: Start Backend Server
+        run: npm start &
+        working-directory: backend
 
-    - name: Run Keploy Test Suite
-      run: |
-        export KEPLOY_API_KEY=mADN7lUmyXLuyX4Huw== && \
-        keploy test-suite \
-          --app=6ed82155-be53-4588-8776-a8f8f9d52017 \
-          --base-path=http://localhost:5000/api \
-          --cloud
+      - name: Install Keploy CLI
+        run: |
+          curl --silent -L https://keploy.io/ent/install.sh | bash
+
+      - name: Run Keploy Test Suite
+        run: |
+          export KEPLOY_API_KEY=mADN7lUmyXLuyX4Huw== && \
+          keploy test-suite --app=6ed82155-be53-4588-8776-a8f8f9d52017 --base-path http://localhost:5000/api --cloud
