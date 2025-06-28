@@ -14,6 +14,8 @@ A full-stack Pet Adoption Center application that allows users to add, view, upd
   - Supertest (API Testing)
   - MongoMemoryServer (Mocked DB for integration tests)
 - **API Testing:** Postman
+- **AI API Testing:** [Keploy](https://keploy.io)
+- **CI/CD:** GitHub Actions
 
 ---
 
@@ -26,6 +28,8 @@ A full-stack Pet Adoption Center application that allows users to add, view, upd
 - Connected React frontend
 - MongoDB Atlas integration
 - Unit, Integration, and API test coverage
+- Keploy AI test suite
+- CI/CD automated testing pipeline
 - `.env` environment config support
 
 ---
@@ -124,7 +128,32 @@ pet-adoption-center/
 
 ---
 
-## 🧪 Testing Overview
+# 🧪 Testing Overview
+
+
+---
+
+## 🧪 Keploy AI API Testing ✅
+
+Keploy has been integrated for API testing using captured `curl` traffic and an OpenAPI schema.
+
+### 📷 Keploy Test Report Screenshot
+
+![Keploy Report](./Screenshots/keploy-dashboard.png)
+
+---
+
+## 🔁 CI/CD Integration (GitHub Actions)
+
+Keploy test suite runs automatically via **GitHub Actions** on every push.  
+Tests run with your live API using `test-suite` mode in **Keploy Cloud**.
+
+### ✅ CI/CD Workflow on GitHub
+
+👉 [View Workflow Runs](https://github.com/NishantChaubey534/pet-adoption-center/actions)
+
+---
+
 
 ### ✅ 1. Unit Tests (Jest)
 - File: `tests/unit/petController.test.js`
@@ -153,7 +182,7 @@ Test coverage is automatically calculated using Jest.
 
 ## 🧪 Test Coverage Report
 
-![Test Coverage](./Screenshots/testingReport.png)
+![Test Coverage](./Screenshots/coverage.png)
 
 ---
 
@@ -199,6 +228,8 @@ npm start
 - Jest
 - Supertest
 - MongoMemoryServer
+- keploy
+- GitHub Actions
 
 ---
 
