@@ -182,7 +182,7 @@ Test coverage is automatically calculated using Jest.
 
 ## 🧪 Test Coverage Report
 
-![Test Coverage](./Screenshots/coverage.png)
+![Test Coverage](./Screenshots/testingReport.png)
 
 ---
 
