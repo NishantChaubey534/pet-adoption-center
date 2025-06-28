@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 require('dotenv').config();
-const petRoutes = require('./routes/petRoutes');
+const petRoutes = require('./routes/petroutes');
 const cors = require('cors');
 
 const app = express();
@@ -11,8 +11,20 @@ app.use(cors({
   credentials: true,
 }));
 
-const { swaggerUi, specs } = require("./swagger");
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({ error: "Invalid JSON syntax" });
+  }
+  next();
+});
+
+const { swaggerUi, specs } = require('./swagger'); // adjust path
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
+
+app.get("/openapi.json", (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(specs);
+});
 
 
 app.use(express.json());
