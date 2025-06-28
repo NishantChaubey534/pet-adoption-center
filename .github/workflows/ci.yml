@@ -1,22 +1,17 @@
-name: Run Keploy Test Suite
+name: Keploy API Testing
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
-  test:
+  keploy-test:
     runs-on: ubuntu-latest
 
-    services:
-      mongodb:
-        image: mongo:5.0
-        ports:
-          - 27017:27017
-
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v3
 
       - name: Set up Node.js
@@ -28,14 +23,18 @@ jobs:
         run: npm install
         working-directory: backend
 
-      - name: Start server in background
+      - name: Create .env file with Mongo URI
         run: |
-          npm run start &
-          sleep 10 # wait for server to start
+          echo "MONGO_URI=${{ secrets.MONGO_URI }}" > .env
+        working-directory: backend
+
+      - name: Start Backend Server
+        run: npm start &
         working-directory: backend
 
       - name: Install Keploy CLI
-        run: curl --silent -L https://keploy.io/ent/install.sh | bash
+        run: |
+          curl --silent -L https://keploy.io/ent/install.sh | bash
 
       - name: Run Keploy Test Suite
         run: |
